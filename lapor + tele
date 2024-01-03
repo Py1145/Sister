@@ -1,0 +1,114 @@
+//************************************************************
+// this is a simple example that uses the painlessMesh library
+// 
+// This example shows how to build a mesh with named nodes
+//
+//************************************************************
+#include "namedMesh.h"
+
+#define   MESH_SSID       "Sonokelinq_5G"
+#define   MESH_PASSWORD   "tahusumedang2022"
+#define   MESH_PORT       5555
+
+#ifdef ESP32
+  #include <WiFi.h>
+#else
+  #include <ESP8266WiFi.h>
+#endif
+#include <WiFiClientSecure.h>
+#include <UniversalTelegramBot.h>   // Universal Telegram Bot Library written by Brian Lough: https://github.com/witnessmenow/Universal-Arduino-Telegram-Bot
+#include <ArduinoJson.h>
+
+const char* ssid = "Sonokelinq_5G";
+const char* password = "tahusumedang2022";
+
+#define BOTtoken "6959429606:AAGw_0t7Wq4dr-BOmp5NP9JXw4CFubkwtoE"
+#define CHAT_ID "6959429606"
+
+WiFiClientSecure client;
+UniversalTelegramBot bot(BOTtoken, client);
+
+// Checks for new messages every 1 second.
+int botRequestDelay = 1000;
+unsigned long lastTimeBotRan;
+
+Scheduler  userScheduler; // to control your personal task
+namedMesh  mesh;
+
+String nodeName = "Node Lapor"; // Name needs to be unique
+
+void handleNewMessages(int numNewMessages) {
+ Serial.println("handleNewMessages");
+  Serial.println(String(numNewMessages));
+
+  for (int i=0; i<numNewMessages; i++) {
+    // Chat id of the requester
+    String chat_id = String(bot.messages[i].chat_id);
+    if (chat_id != CHAT_ID){
+      bot.sendMessage(chat_id, "Unauthorized user", "");
+      continue;
+    }
+    
+    // Print the received message
+    String text = bot.messages[i].text;
+    Serial.println(text);
+
+    String from_name = bot.messages[i].from_name;
+
+    if (text == "/start") {
+      String Data = adasdasddas + from_name + ".\n";
+      bot.sendMessage(chat_id, Data, "");
+    }
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  mesh.setDebugMsgTypes(ERROR | DEBUG | CONNECTION);  // set before init() so that you can see startup messages
+
+  mesh.init(MESH_SSID, MESH_PASSWORD, &userScheduler, MESH_PORT);
+
+  mesh.setName(nodeName); // This needs to be an unique name! 
+
+  mesh.onReceive([](uint32_t from, String &msg) {
+    Serial.printf("Received message by id from: %u, %s\n", from, msg.c_str());
+  });
+
+  mesh.onReceive([](String &from, String &msg) {
+    Serial.printf("Received message by name from: %s, %s\n", from.c_str(), msg.c_str());
+  });
+
+  mesh.onChangedConnections([]() {
+    Serial.printf("Changed connection\n");
+  });
+
+    // Connect to Wi-Fi
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  #ifdef ESP32
+    client.setCACert(TELEGRAM_CERTIFICATE_ROOT); // Add root certificate for api.telegram.org
+  #endif
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting to WiFi..");
+  }
+  // Print ESP32 Local IP Address
+  Serial.println(WiFi.localIP());
+}
+
+void loop() {
+  // it will run the user scheduler as well
+  mesh.update();
+
+  if (millis() > lastTimeBotRan + botRequestDelay)  {
+  int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+
+  while(numNewMessages) {
+    Serial.println("got response");
+    handleNewMessages(numNewMessages);
+    numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+  }
+  lastTimeBotRan = millis();
+  }
+}
