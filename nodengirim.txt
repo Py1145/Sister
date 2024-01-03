@@ -7,8 +7,8 @@
 #include "namedMesh.h"
 #include "DHT.h"
 
-#define   MESH_SSID       "whateverYouLike"
-#define   MESH_PASSWORD   "somethingSneaky"
+#define   MESH_SSID       "Sonokelinq_5G"
+#define   MESH_PASSWORD   "tahusumedang2022"
 #define   MESH_PORT       5555
 #define   DHTTYPE DHT11
 #define   DHTPIN 2
