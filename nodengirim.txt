@@ -19,15 +19,15 @@ DHT dht(DHTPIN, DHTTYPE);
 Scheduler  userScheduler; // to control your personal task
 namedMesh  mesh;
 
-String nodeName = "Node 3"; // Name needs to be unique
+String nodeName = "Node 1"; // Name needs to be unique
 
 float suhu = dht.readTemperature();
 int kelembaban = analogRead(AOUT_PIN);
 
 Task taskSendMessage( TASK_SECOND*30, TASK_FOREVER, []() {
-    String msg = String("Pesan dari: ") + nodeName + String("Nilai Suhu:") + suhu + String(" °C") + String("Kelembaban: ") + kelembaban;
+    String msg = String("Nilai Suhu: ") + suhu + String("°C") + String(" Kelembaban: ") + kelembaban;
     String to = "Node Lapor";
-    mesh.sendSingle(to, msg); 
+    mesh.sendSingle(to, msg);
 }); // start with a one second interval
 
 void setup() {
