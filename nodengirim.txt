@@ -7,23 +7,25 @@
 #include "namedMesh.h"
 #include "DHT.h"
 
-#define   MESH_SSID       "Sonokelinq_5G"
-#define   MESH_PASSWORD   "tahusumedang2022"
+#define   MESH_SSID       "PE"
+#define   MESH_PASSWORD   "cepis1235"
 #define   MESH_PORT       5555
 #define   DHTTYPE DHT11
 #define   DHTPIN 2
+#define   AOUT_PIN 36
 
 DHT dht(DHTPIN, DHTTYPE);
 
 Scheduler  userScheduler; // to control your personal task
 namedMesh  mesh;
 
-String nodeName = "Node 1"; // Name needs to be unique
+String nodeName = "Node 3"; // Name needs to be unique
 
 float suhu = dht.readTemperature();
+int kelembaban = analogRead(AOUT_PIN);
 
 Task taskSendMessage( TASK_SECOND*30, TASK_FOREVER, []() {
-    String msg = String("Pesan dari: ") + nodeName + String("Nilai Suhu:") + suhu + String(" °C");
+    String msg = String("Pesan dari: ") + nodeName + String("Nilai Suhu:") + suhu + String(" °C") + String("Kelembaban: ") + kelembaban;
     String to = "Node Lapor";
     mesh.sendSingle(to, msg); 
 }); // start with a one second interval
