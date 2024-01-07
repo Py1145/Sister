@@ -5,27 +5,14 @@
 //
 //************************************************************
 #include "namedMesh.h"
-
-#define   MESH_SSID       "Sonokelinq_5G"
-#define   MESH_PASSWORD   "tahusumedang2022"
-#define   MESH_PORT       5555
-
-Scheduler  userScheduler; // to control your personal task
-namedMesh  mesh;
-
-String nodeName = "Node Lapor"; // Name needs to be unique
-
-void setup() {//************************************************************
-// this is a simple example that uses the painlessMesh library
-// 
-// This example shows how to build a mesh with named nodes
-//
-//************************************************************
-#include "namedMesh.h"
+#include <Wire.h> 
+#include <LiquidCrystal_I2C.h>
 
 #define   MESH_SSID       "PE"
 #define   MESH_PASSWORD   "cepis1235"
 #define   MESH_PORT       5555
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 Scheduler  userScheduler; // to control your personal task
 namedMesh  mesh;
@@ -35,26 +22,10 @@ String nodeName = "Node Lapor"; // Name needs to be unique
 void setup() {
   Serial.begin(115200);
 
-  mesh.setDebugMsgTypes(ERROR | DEBUG | CONNECTION);  // set before init() so that you can see startup messages
-
-  mesh.init(MESH_SSID, MESH_PASSWORD, &userScheduler, MESH_PORT);
-
-  mesh.setName(nodeName); // This needs to be an unique name! 
-
-  mesh.onReceive([](String &from, String &msg) {
-    Serial.printf("Received message by name from: %s, %s\n", from.c_str(), msg.c_str());
-  });
-
-  mesh.onChangedConnections([]() {
-    Serial.printf("Changed connection\n");
-  });
-}
-
-void loop() {
-  // it will run the user scheduler as well
-  mesh.update();
-}
-  Serial.begin(115200);
+  lcd.init();                      // initialize the lcd 
+  lcd.backlight();
+  lcd.begin(16, 2);
+  lcd.clear();
 
   mesh.setDebugMsgTypes(ERROR | DEBUG | CONNECTION);  // set before init() so that you can see startup messages
 
@@ -62,20 +33,29 @@ void loop() {
 
   mesh.setName(nodeName); // This needs to be an unique name! 
 
-  mesh.onReceive([](uint32_t from, String &msg) {
-    Serial.printf("Received message by id from: %u, %s\n", from, msg.c_str());
-  });
-
-  mesh.onReceive([](String &from, String &msg) {
-    Serial.printf("Received message by name from: %s, %s\n", from.c_str(), msg.c_str());
-  });
-
+  
   mesh.onChangedConnections([]() {
     Serial.printf("Changed connection\n");
   });
 }
 
+void scrollTextOnLCD(String text, int delayTime) {
+    int textLength = text.length();
+    int lcdWidth = 16;
+
+    for (int i = 0; i <= textLength; i++) {
+        lcd.setCursor(0,1);
+        lcd.print(text.substring(i, i + lcdWidth));
+      delay(delayTime);
+    }
+}
 void loop() {
-  // it will run the user scheduler as well
+mesh.onReceive([](String &from, String &msg) {
+  Serial.printf("Received message by name from: %s, %s\n", from.c_str(), msg.c_str());
+lcd.setCursor(0,0);
+lcd.print(from);
+scrollTextOnLCD(msg, 500);
+});
+
   mesh.update();
 }
