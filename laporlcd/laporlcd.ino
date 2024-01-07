@@ -1,0 +1,51 @@
+//************************************************************
+// this is a simple example that uses the painlessMesh library
+// 
+// This example shows how to build a mesh with named nodes
+//
+//************************************************************
+#include "namedMesh.h"
+#include <Wire.h> 
+#include <LiquidCrystal_I2C.h>
+
+#define   MESH_SSID       "PE"
+#define   MESH_PASSWORD   "cepis1235"
+#define   MESH_PORT       5555
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+Scheduler  userScheduler; // to control your personal task
+namedMesh  mesh;
+
+String nodeName = "Node Lapor"; // Name needs to be unique
+
+void setup() {
+  Serial.begin(115200);
+
+  lcd.init();                      // initialize the lcd 
+  lcd.backlight();
+  lcd.begin(16, 2);
+  lcd.clear();
+
+  mesh.setDebugMsgTypes(ERROR | DEBUG | CONNECTION);  // set before init() so that you can see startup messages
+
+  mesh.init(MESH_SSID, MESH_PASSWORD, &userScheduler, MESH_PORT);
+
+  mesh.setName(nodeName); // This needs to be an unique name! 
+
+  
+  mesh.onChangedConnections([]() {
+    Serial.printf("Changed connection\n");
+  });
+}
+void loop() {
+mesh.onReceive([](String &from, String &msg) {
+  Serial.printf("Received message by name from: %s, %s\n", from.c_str(), msg.c_str());
+lcd.setCursor(0,0);
+lcd.print(from);
+lcd.setCursor(0,1);
+lcd.print(msg);
+});
+
+  mesh.update();
+}

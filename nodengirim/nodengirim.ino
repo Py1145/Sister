@@ -1,0 +1,48 @@
+//************************************************************
+// this is a simple example that uses the painlessMesh library
+// 
+// This example shows how to build a mesh with named nodes
+//
+//************************************************************
+#include "namedMesh.h"
+
+#define   MESH_SSID       "PE"
+#define   MESH_PASSWORD   "cepis1235"
+#define   MESH_PORT       5555
+#define   AOUT_PIN        36
+
+Scheduler  userScheduler; // to control your personal task
+namedMesh  mesh;
+
+String nodeName = "Node 3"; // Name needs to be unique
+
+int kelembaban = analogRead(AOUT_PIN);
+int kelembabanpersen = map(kelembaban, 0, 1023, 100, 0);
+
+Task taskSendMessage( TASK_SECOND*30, TASK_FOREVER, []() {
+    String msg = String("Kelembaban: ") + kelembabanpersen;
+    String to = "Node Lapor";
+    mesh.sendSingle(to, msg);
+}); // start with a one second interval
+
+void setup() {
+  Serial.begin(115200);
+
+  mesh.setDebugMsgTypes(ERROR | DEBUG | CONNECTION);  // set before init() so that you can see startup messages
+
+  mesh.init(MESH_SSID, MESH_PASSWORD, &userScheduler, MESH_PORT);
+
+  mesh.setName(nodeName); // This needs to be an unique name! 
+
+  mesh.onChangedConnections([]() {
+    Serial.printf("Changed connection\n");
+  });
+
+  userScheduler.addTask(taskSendMessage);
+  taskSendMessage.enable();
+}
+
+void loop() {
+  // it will run the user scheduler as well
+  mesh.update();
+}
